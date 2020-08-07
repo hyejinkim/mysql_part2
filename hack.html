@@ -1,0 +1,237 @@
+<html>
+    <head>
+        <style>
+            .container {
+                text-align: center;
+            }
+            .title {
+                font-size: 80;
+                margin-top: 100;
+                color: blue;
+            }
+            .hack {
+                font-size: 50;
+            }
+            .btn {
+                margin-top: 10; 
+                width: 60%;
+            }
+            #username {
+                width: 40%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            #login-success-header {
+                margin-top: 100;
+                font-size: 50;
+                color:red;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 50;
+                margin-bottom: 50;
+            }
+            #table {
+                font-size: 25;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            #login-container {
+                margin-top: 100;
+                margin-bottom: 100;
+            }
+            #success-hack {
+                margin-top: 50;
+                font-size: 30;
+                color: green;
+            }
+        </style>
+        <link 
+            rel="stylesheet" 
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" 
+            crossorigin="anonymous">
+    </head>
+
+    <body>
+        <div class="container" id="main">
+            <h1 class="title">3SP Ethical Hacking</h1>
+            <h2>Hack the Password</h2>
+            <br>
+            <br>
+            <br>
+            <div class="form-group hack">
+                <label for="username">Database:</label>
+                <input type="text" id="username">
+            </div>
+            
+            <p class="hack" id="password"></p>
+            <audio id="mi" ><source src="mi.mp3" type="audio/mp3"></audio>
+            <button type="button" class="btn btn-warning" onclick="hack()">START HACK</button>
+        </div>
+        <div class="container" id="login-container">
+            <h1 id="login-success-header"></h1>
+
+            <table id="table" style="width:70%;">
+                <tr id="header">
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                <tr id="row0">
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                </tr>
+                <tr id="row1">
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                </tr>
+                <tr id="row2">
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                </tr>
+                <tr id="row3">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr id="row4">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr id="row5">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr id="row6">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+        <script>
+            var currentlyHacking = false;
+            var grades;
+            var audioElt = document.getElementById("mi");
+            async function hack()
+            {
+                audioElt.play();
+                if (currentlyHacking)
+                {
+                    return;
+                }
+                currentlyHacking = true;
+                var username = document.getElementById("username");
+                for (var i = 0; i < 10000; ++i)
+                {
+                    try
+                    {
+                        var response = await fetch(
+                            'http://localhost:3000/login',
+                            {
+                                method: 'POST',
+                                headers: { 
+                                    'Content-Type': 'application/json' 
+                                },
+                                body: JSON.stringify({ 'username': username.value, 'password': i })
+                            }
+                        );
+                        
+                        response = await response.json();    
+                        console.log("LOGIN:", response.login);
+                        var passwordElt = document.getElementById("password");
+                        if (response.login)
+                        {
+                            passwordElt.innerHTML = "Found password:" + i;
+                            passwordElt.style.color = "green";
+                            grades = response.grades;
+                            break;
+                        }
+                        else
+                        {
+                            passwordElt.innerHTML = "Trying password:" + i;
+                            passwordElt.style.color = "red";
+                        }
+                    }
+                    catch (err)
+                    {
+                        console.log(err);
+                    }
+                }
+                currentlyHacking = false;
+
+                setTimeout(() => {
+                    document.getElementById("main").remove();
+                    showLoginPage(username.value);
+                }, 1500);
+            }
+            
+            async function showLoginPage(name)
+            {
+                var gradeElt = document.getElementById("login-success-header");
+                gradeElt.innerHTML = `Successfully logged into ${name} database!`;
+
+                var headerElt = document.getElementById("header");
+                console.log(headerElt.children);
+                headerElt.children[0].innerHTML = "Student Name";
+                headerElt.children[1].innerHTML = "Student ID";
+                headerElt.children[2].innerHTML = "Grade";
+
+                for (var i = 0; i < grades.length; ++i)
+                {
+                    var rowElt = document.getElementById(`row${i}`);
+                    rowElt.children[0].innerHTML = grades[i][0].trim();
+                    rowElt.children[1].innerHTML = grades[i][1];
+
+                    var inputNode = document.createElement("input");
+                    inputNode.id = `${i}`;
+                    inputNode.value = grades[i][2].trim();
+                    rowElt.children[2].appendChild(inputNode);
+                }
+
+
+                var button = document.createElement("button");
+                button.innerText = "HACK DATABASE";
+                button.classList = "btn btn-warning";
+                button.type = "button";
+                button.onclick = async () => {
+                    var newGrades = grades;
+                    for (var i = 0; i < grades.length; ++i)
+                    {
+                        var rowElt = document.getElementById(`row${i}`);
+                        newGrades[i][2] = rowElt.children[2].children[0].value;
+                    }
+
+                    var response = await fetch(
+                        'http://localhost:3000/update',
+                        {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json' 
+                            },
+                            body: JSON.stringify({ 'grades': newGrades })
+                        }
+                    );
+
+                    response = await response.json();    
+                    
+                    var success = document.createElement("h3");
+                    success.innerHTML = "Successfully Hacked";
+                    success.id = "success-hack";
+
+                    document.getElementById("login-container").appendChild(success);
+                };
+
+                document.getElementById("login-container").appendChild(document.createElement("br"));
+                document.getElementById("login-container").appendChild(document.createElement("br"));
+                document.getElementById("login-container").appendChild(button);
+            }
+            
+        </script>
+    </body>
+</html>
